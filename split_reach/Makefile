@@ -19,6 +19,7 @@ DOCKER_LOCALHOST := host.docker.internal
 # _____________
 # TODO:
 # When we're done with testing the splitter, we should run docker tasks demonized.
+# Also all the pipeline related images are meant to be run in Argo, not just like that.
 # _____________
 
 .PHONY: base-image
@@ -144,7 +145,7 @@ run-fuzzymatcher: fuzzymatcher-image
 
 
 .PHONY: run-indexer-citations
-run-indexer-fulltexts: indexer-image
+run-indexer-citations: indexer-image
 	docker run \
 	    -e AWS_ACCESS_KEY_ID="${AWS_ACCESS_KEY_ID}" \
 		-e AWS_SECRET_ACCESS_KEY="${AWS_SECRET_ACCESS_KEY}" \
@@ -175,6 +176,16 @@ docker-test: tests-image
 	docker run -u root -v $$(pwd)/requirements.tests.txt:/requirements.tests.txt \
 		--rm $(ECR_IMAGE):$(VERSION) \
 		sh -c "pip3 install -r /requirements.tests.txt && pytest /opt/reach"
+
+
+
+# Web application
+.PHONY: web-image
+web-image:
+	docker build \
+	    -t uk.ac.wellcome/reach/web \
+		-f web/Dockerfile \
+		web
 
 .PHONY: all
 all: docker-build
